@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp_rabbit_mq_cliente_1.Views.SettingsRabbitMQPage"
+             xmlns:vm="clr-namespace:MauiApp_rabbit_mq_cliente_1.ViewModels">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackLayout Grid.Row="0" Margin="15">
+            <Label Text="Settings RabbitMQ" FontSize="20" FontAttributes="Bold"/>
+        </StackLayout>
+
+        <StackLayout Grid.Row="1" Margin="15">
+            <Label Text="HostName" FontSize="16"/>
+            <Entry Grid.Row="1" Text="{Binding HostName}"
+                   Placeholder="Hostname" 
+                   FontSize="16"/>
+        </StackLayout>
+
+        <StackLayout Grid.Row="2" Margin="15">
+            <Label Text="Exchange name" FontSize="16"/>
+            <Entry Grid.Row="1" Text="{Binding ExchangeName}"
+                   Placeholder="Exchange name" 
+                   FontSize="16"/>
+        </StackLayout>
+
+        <Button Grid.Row="3" Margin="15"
+                Text="Guardar"
+                Command="{Binding SaveConfigurationCommand}"
+                IsEnabled="{Binding IsEnabledButton}"/>
+
+    </Grid>
+
+</ContentPage>

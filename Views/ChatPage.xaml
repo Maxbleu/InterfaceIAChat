@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp_rabbit_mq_cliente_1.Views.ChatPage"
+             xmlns:vm="clr-namespace:MauiApp_rabbit_mq_cliente_1.ViewModels"
+             xmlns:mdl="clr-namespace:MauiApp_rabbit_mq_cliente_1.Models"
+             xmlns:views="clr-namespace:MauiApp_rabbit_mq_cliente_1.Views">
+
+    <ContentPage.BindingContext>
+        <vm:ChatViewModel/>
+    </ContentPage.BindingContext>
+
+    <Grid BackgroundColor="#F5F5F5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Padding="16" Stroke="#E5E5E5" BackgroundColor="White">
+            <Grid Grid.Row="0">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" 
+                       Text="{Binding NombreChat}" 
+                       Margin="12,0,0,0"
+                       VerticalOptions="Center" 
+                       FontSize="18" 
+                       FontAttributes="Bold"/>
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="1" BackgroundColor="#F5F5F5" Margin="16" ItemsSource="{Binding Messages}" ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="mdl:Message">
+                    <StackLayout Margin="0,4">
+                        <Frame Padding="12" CornerRadius="20" HasShadow="False" MaximumWidthRequest="300">
+                            <Frame.Style>
+                                <Style TargetType="Frame">
+                                    <Setter Property="BackgroundColor" Value="White"/>
+                                    <Setter Property="HorizontalOptions" Value="Start"/>
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Frame" Binding="{Binding Sender}" Value="1">
+                                            <Setter Property="BackgroundColor" Value="#007AFF"/>
+                                            <Setter Property="HorizontalOptions" Value="End"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Frame.Style>
+                            <Label Text="{Binding Text}" FontSize="16">
+                                <Label.Style>
+                                    <Style TargetType="Label">
+                                        <Setter Property="TextColor" Value="Black"/>
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Sender}" Value="2">
+                                                <Setter Property="TextColor" Value="Black"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Label.Style>
+                            </Label>
+                        </Frame>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Grid Grid.Row="2" BackgroundColor="White" Padding="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Editor x:Name="MessageEditor"
+            Text="{Binding NewMessageText, Mode=TwoWay}"
+            Placeholder="Escribe un mensaje..."
+            BackgroundColor="#F5F5F5" TextColor="Black" 
+            FontSize="16" HeightRequest="50"
+            Margin="0,0,8,0" Grid.Column="0"/>
+            <Button x:Name="SendButton" Text="Send"
+            Command="{Binding SendMessageCommand}"
+            WidthRequest="70" HeightRequest="50"
+            VerticalOptions="Center" HorizontalOptions="End"
+            Grid.Column="1"/>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

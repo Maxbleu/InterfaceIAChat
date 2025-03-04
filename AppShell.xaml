@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MauiApp_rabbit_mq_cliente_1.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiApp_rabbit_mq_cliente_1"
+    xmlns:views="clr-namespace:MauiApp_rabbit_mq_cliente_1.Views"
+    Title="MauiApp_rabbit_mq_cliente_1">
+
+    <TabBar>
+        <Tab Title="Chat" Icon="chat.svg">
+            <ShellContent ContentTemplate="{DataTemplate views:ChatPage}" />
+        </Tab>
+        <Tab Title="Modelo" Icon="ia.svg">
+            <ShellContent ContentTemplate="{DataTemplate views:SettingsModeloPage}" />
+        </Tab>
+        <Tab Title="RabbitMQ" Icon="rabbitmq.svg">
+            <ShellContent ContentTemplate="{DataTemplate views:SettingsRabbitMQPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>
