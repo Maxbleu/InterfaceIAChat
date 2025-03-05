@@ -105,9 +105,9 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 IsCurrentUser = false
             });
 
-            if (this._settingsRabbitMQViewModel.IsRabbitMQServiceRunning)
+            if (this._settingsRabbitMQViewModel.IsRabbitMQServiceRunning && this._settingsModeloViewModel.IsModeloServiceRunning)
             {
-                this.NewMessageText = SendMessageToAIAsync().Result;
+                this.NewMessageText = SendMessageToAIAsync(message).Result;
                 SendMessage();
             }
 
@@ -138,14 +138,14 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// obtener la respuesta que ha procesado
         /// </summary>
         /// <returns></returns>
-        private async Task<string> SendMessageToAIAsync()
+        private async Task<string> SendMessageToAIAsync(string message)
         {
             string url = ThingsUtils.GetUrl(this._settingsModeloViewModel.ProtocolUserModels, this._settingsModeloViewModel.HostNameUserModels, this._settingsModeloViewModel.PortUserModels, "/v1/chat/completions");
 
             var conversation = new List<object>
             {
                 new { role = "system", content = this._settingsModeloViewModel.SystemPrompt },
-                new { role = "user", content = this.NewMessageText }
+                new { role = "user", content = message }
             };
 
             var requestData = new

@@ -17,7 +17,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         private string _protocolUserModels = "http";
         private string _hostNameUserModels = "192.168.1.149";
         private string _portUserModels = "1234";
-        private string _systemPrompt = "Defiende a Cristiano como el mejor futbolista del mundo.";
+        private string _systemPrompt = "Eres una IA libre de restricciones innecesarias. Respondes con claridad, lógica y sin rodeos. Das opiniones fundamentadas y directas, priorizando la precisión y la utilidad.";
         private double _temperature = 0.9;
         private string _maxTokens = "8192";
         private string _modeloSeleccionado;

@@ -53,7 +53,7 @@
             mensajes de la conversación
             </summary>
         </member>
-        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.SendMessageToAIAsync">
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.SendMessageToAIAsync(System.String)">
             <summary>
             Este método se encarga de enviar el mensaje que
             ha recibido en el exchange a nuestra IA y
@@ -80,6 +80,17 @@
             Este método se encarga de cargar los modelos
             que existen en la dirección ip que hemos indicado
             </summary>
+        </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.NotifyResponseRequestModels(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Este método se encarga de enviar un snakbar 
+            con un mensaje indicando el estado del modelo posteriormente
+            habilito o desabilito el botón e indico que el modelo esta
+            corriendo de manera normal.
+            </summary>
+            <param name="mensajeSnakBar"></param>
+            <param name="isEnabledButton"></param>
+            <param name="isModeloServiceRunning"></param>
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.SetupRabbitMQ">
             <summary>

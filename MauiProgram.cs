@@ -19,11 +19,11 @@ namespace MauiApp_rabbit_mq_cliente_1
             builder.Services.AddSingleton<SettingsModeloViewModel>();
             builder.Services.AddSingleton<ChatViewModel>();
 
-            builder.Services.AddTransient<SettingsRabbitMQPage>();
-            builder.Services.AddTransient<SettingsModeloPage>();
+            builder.Services.AddSingleton<SettingsRabbitMQPage>();
+            builder.Services.AddSingleton<SettingsModeloPage>();
 
-            builder.Services.AddTransient<ChatPage>();
-            builder.Services.AddTransient<AppShell>();
+            builder.Services.AddSingleton<ChatPage>();
+            builder.Services.AddSingleton<AppShell>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
