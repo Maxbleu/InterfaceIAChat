@@ -15,11 +15,11 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
     {
 
         //  CAMPOS
-        private string _appId = "1";
         private string _nombreChat;
         private string _newMessageText;
-        private SettingsRabbitMQViewModel _settingsRabbitMQViewModel;
         public event PropertyChangedEventHandler PropertyChanged;
+        private SettingsModeloViewModel _settingsModeloViewModel;
+        private SettingsRabbitMQViewModel _settingsRabbitMQViewModel;
 
         //  BINDING UI ELEMENTS
         public ObservableCollection<Message> Messages { get; set; }
@@ -47,18 +47,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 }
             }
         }
-        public string AppId
-        {
-            get => _appId;
-            set
-            {
-                if (_appId != value)
-                {
-                    _appId = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
 
         // COMMANDS
         public ICommand SendMessageCommand { get; }
@@ -68,10 +56,13 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             this.Messages = new ObservableCollection<Message>();
             this.SendMessageCommand = new Command(SendMessage);
 
-            this._settingsRabbitMQViewModel = IPlatformApplication.Current.Services.GetService<SettingsRabbitMQViewModel>();
+            this._settingsModeloViewModel = IPlatformApplication.Current.Services.GetService<SettingsModeloViewModel>();
+            this._settingsModeloViewModel.LoadModelsAsync();
 
+            this._settingsRabbitMQViewModel = IPlatformApplication.Current.Services.GetService<SettingsRabbitMQViewModel>();
             this.NombreChat = ThingsUtils.CapitalizeFirstLetter(this._settingsRabbitMQViewModel.ExchangeName);
             this._settingsRabbitMQViewModel.PropertyChanged += SettingsRabbitMQViewModel_PropertyChanged;
+            this._settingsRabbitMQViewModel.SetupRabbitMQ();
         }
 
 
@@ -103,7 +94,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// <param name="e"></param>
         private void OnReceived(object sender, BasicDeliverEventArgs e)
         {
-            if (e.BasicProperties.AppId == this.AppId) return;
+            if (e.BasicProperties.AppId == this._settingsRabbitMQViewModel.AppId) return;
             var body = e.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
 
@@ -111,7 +102,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             {
                 Id = DateTime.Now.Ticks.ToString(),
                 Text = message,
-                Sender = e.BasicProperties.AppId
+                IsCurrentUser = false
             });
 
             if (this._settingsRabbitMQViewModel.IsRabbitMQServiceRunning)
@@ -119,6 +110,8 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 this.NewMessageText = SendMessageToAIAsync().Result;
                 SendMessage();
             }
+
+            this._settingsRabbitMQViewModel.Channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
         }
 
         //  MENSAJES
@@ -133,7 +126,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             {
                 Id = now.Ticks.ToString(),
                 Text = NewMessageText,
-                Sender = this.AppId,
+                IsCurrentUser = true,
             };
 
             Messages.Add(newMessage);
@@ -147,21 +140,20 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// <returns></returns>
         private async Task<string> SendMessageToAIAsync()
         {
-            SettingsModeloViewModel settingsModeloViewModel = IPlatformApplication.Current.Services.GetService<SettingsModeloViewModel>();
-            string url = ThingsUtils.GetUrl(settingsModeloViewModel.ProtocolUserModels, settingsModeloViewModel.HostNameUserModels, settingsModeloViewModel.PortUserModels, "/v1/chat/completions");
+            string url = ThingsUtils.GetUrl(this._settingsModeloViewModel.ProtocolUserModels, this._settingsModeloViewModel.HostNameUserModels, this._settingsModeloViewModel.PortUserModels, "/v1/chat/completions");
 
             var conversation = new List<object>
             {
-                new { role = "system", content = settingsModeloViewModel.SystemPrompt },
+                new { role = "system", content = this._settingsModeloViewModel.SystemPrompt },
                 new { role = "user", content = this.NewMessageText }
             };
 
             var requestData = new
             {
-                model = settingsModeloViewModel.ModeloSeleccionado,
+                model = this._settingsModeloViewModel.ModeloSeleccionado,
                 messages = conversation.ToArray(),
-                temperature = settingsModeloViewModel.Temperature,
-                max_tokens = settingsModeloViewModel.MaxTokens,
+                temperature = this._settingsModeloViewModel.Temperature,
+                max_tokens = this._settingsModeloViewModel.MaxTokens,
             };
 
             using (HttpClient client = new HttpClient())
@@ -200,7 +192,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// </summary>
         private void SendMessage()
         {
-            this._settingsRabbitMQViewModel.PostMessageInExchange(this.NewMessageText, this.AppId);
+            this._settingsRabbitMQViewModel.PostMessageInExchange(this.NewMessageText);
             ShowMessage();
         }
 

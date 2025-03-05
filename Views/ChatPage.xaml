@@ -35,7 +35,7 @@
 
         <CollectionView Grid.Row="1" BackgroundColor="#F5F5F5" Margin="16" ItemsSource="{Binding Messages}" ItemsUpdatingScrollMode="KeepLastItemInView">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="mdl:Message">
+                <DataTemplate>
                     <StackLayout Margin="0,4">
                         <Frame Padding="12" CornerRadius="20" HasShadow="False" MaximumWidthRequest="300">
                             <Frame.Style>
@@ -43,7 +43,7 @@
                                     <Setter Property="BackgroundColor" Value="White"/>
                                     <Setter Property="HorizontalOptions" Value="Start"/>
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Frame" Binding="{Binding Sender}" Value="1">
+                                        <DataTrigger TargetType="Frame" Binding="{Binding IsCurrentUser}" Value="True">
                                             <Setter Property="BackgroundColor" Value="#007AFF"/>
                                             <Setter Property="HorizontalOptions" Value="End"/>
                                         </DataTrigger>
@@ -54,9 +54,10 @@
                                 <Label.Style>
                                     <Style TargetType="Label">
                                         <Setter Property="TextColor" Value="Black"/>
+                                        <!-- Puedes ajustar el color del texto también, si lo deseas -->
                                         <Style.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Sender}" Value="2">
-                                                <Setter Property="TextColor" Value="Black"/>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCurrentUser}" Value="True">
+                                                <Setter Property="TextColor" Value="White"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -67,6 +68,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
 
         <Grid Grid.Row="2" BackgroundColor="White" Padding="15">
             <Grid.ColumnDefinitions>

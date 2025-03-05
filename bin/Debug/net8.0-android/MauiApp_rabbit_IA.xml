@@ -87,7 +87,7 @@
             RabbitMQ para que las IA puedan tener la conversion
             </summary>
         </member>
-        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.PostMessageInExchange(System.String,System.String)">
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.PostMessageInExchange(System.String)">
             <summary>
             Este método se encarga de enviar el mensaje que 
             ha procesado nuestra IA

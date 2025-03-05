@@ -1,6 +1,4 @@
-﻿using MauiApp_rabbit_mq_cliente_1.ViewModels;
-
-namespace MauiApp_rabbit_mq_cliente_1
+﻿namespace MauiApp_rabbit_mq_cliente_1
 {
     public partial class App : Application
     {

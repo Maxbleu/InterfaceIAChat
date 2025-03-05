@@ -15,13 +15,26 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         private string _queueName;
 
         private bool _isEnabledButton = false;
-        private string _hostName = "localhost";
+        private string _hostName = "192.168.1.149";
         private EventingBasicConsumer _consumer;
         private string _exchangeName = "grupoChat";
         private bool _isRabbitMQServiceRunning = false;
+        private string _appId = Guid.NewGuid().ToString();
         public event PropertyChangedEventHandler? PropertyChanged;
 
         //  BINDING ELEMENTS
+        public IModel Channel
+        {
+            get => _channel;
+            set
+            {
+                if (_channel != value)
+                {
+                    _channel = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         public string HostName
         {
             get => _hostName;
@@ -81,6 +94,18 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 }
             }
         }
+        public string AppId
+        {
+            get => _appId;
+            set
+            {
+                if (_appId != value)
+                {
+                    _appId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         //  COMMANDS
         public ICommand SaveConfigurationCommand { get; }
@@ -88,7 +113,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         public SettingsRabbitMQViewModel()
         {
             this.SaveConfigurationCommand = new Command(this.SaveConfiguration);
-            SetupRabbitMQ();
         }
 
         /// <summary>
@@ -98,24 +122,23 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         public void SetupRabbitMQ()
         {
             this.IsRabbitMQServiceRunning = false;
-            this._channel = null;
             try
             {
                 var factory = new ConnectionFactory() { HostName = this.HostName };
                 var connection = factory.CreateConnection();
-                _channel = connection.CreateModel();
+                this.Channel = connection.CreateModel();
 
-                _channel.ExchangeDeclare(exchange: this.ExchangeName, type: "fanout");
+                this.Channel.ExchangeDeclare(exchange: this.ExchangeName, type: "fanout");
 
                 this._queueName = this._channel.QueueDeclare().QueueName;
 
-                this._channel.QueueBind(queue: this._queueName,
+                this.Channel.QueueBind(queue: this._queueName,
                                   exchange: this.ExchangeName,
                                   routingKey: "");
 
                 this.Consumer = new EventingBasicConsumer(this._channel);
 
-                this._channel.BasicConsume(queue: this._queueName,
+                this.Channel.BasicConsume(queue: this._queueName,
                                      autoAck: false,
                                      consumer: this.Consumer);
 
@@ -134,7 +157,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// Este método se encarga de enviar el mensaje que 
         /// ha procesado nuestra IA
         /// </summary>
-        public void PostMessageInExchange(string newMessageText, string appId)
+        public void PostMessageInExchange(string newMessageText)
         {
             if (!this.IsRabbitMQServiceRunning)
             {
@@ -144,7 +167,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             if (string.IsNullOrWhiteSpace(newMessageText)) return;
             var body = Encoding.UTF8.GetBytes(newMessageText);
             var properties = this._channel.CreateBasicProperties();
-            properties.AppId = appId;
+            properties.AppId = this.AppId;
             this._channel.BasicPublish(exchange: this.ExchangeName, routingKey: "", basicProperties: properties, body: body);
         }
         /// <summary>

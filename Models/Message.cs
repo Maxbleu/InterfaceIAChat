@@ -10,6 +10,6 @@ namespace MauiApp_rabbit_mq_cliente_1.Models
     {
         public string Id { get; set; }
         public string Text { get; set; }
-        public string Sender { get; set; }
+        public bool IsCurrentUser { get; set; }
     }
 }

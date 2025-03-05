@@ -15,7 +15,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         private int _indexModelSelected = 1;
 
         private string _protocolUserModels = "http";
-        private string _hostNameUserModels = "192.168.1.1";
+        private string _hostNameUserModels = "192.168.1.149";
         private string _portUserModels = "1234";
         private string _systemPrompt = "Defiende a Cristiano como el mejor futbolista del mundo.";
         private double _temperature = 0.9;
@@ -23,7 +23,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         private string _modeloSeleccionado;
         private bool _isEnabledButton = false;
         private bool _isModeloServiceRunning = false;
-        private string _lastUrlRequestModels;
 
         //  BINDING ELEMENTS
         public ObservableCollection<string> Models { get; set; }
@@ -155,7 +154,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         {
             this.Models = new ObservableCollection<string>();
             this.ReloadModelsCommand = new Command(ReloadModels);
-            LoadModelsAsync();
         }
 
         /// <summary>
@@ -166,13 +164,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// <param name="obj"></param>
         private void ReloadModels(object obj)
         {
-            this.ProtocolUserModels = this.ProtocolUserModels.Replace(" ", "");
-            this.HostNameUserModels = this.HostNameUserModels.Replace(" ", "");
-            this.ProtocolUserModels = this.ProtocolUserModels.Replace(" ", "");
-            
-            string url = ThingsUtils.GetUrl(this.ProtocolUserModels, this.HostNameUserModels, this.PortUserModels, "/api/v0/models/");
-            if (this._lastUrlRequestModels == url) return;
-
             this.LoadModelsAsync();
         }
 
@@ -190,26 +181,42 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
                 url = ThingsUtils.GetUrl(this.ProtocolUserModels, this.HostNameUserModels, this.PortUserModels, "/api/v0/models/");
                 var response = await client.GetAsync(url);
+
                 string responseBody = await response.Content.ReadAsStringAsync();
                 var objResponse = JsonConvert.DeserializeObject<ResponseModels>(responseBody);
                 List<ModelIA> models = objResponse.Data.ToList();
-                if (models.Count > 0)
+
+                models = models.Where(obj => obj.State == "loaded").ToList();
+                if (models.Count == 0)
                 {
-                    models = models.Where(obj => obj.State == "loaded").ToList();
-                    models.ForEach(obj => this.Models.Add(obj.Id));
-                    this.ModeloSeleccionado = this.Models[0];
-                    ThingsUtils.SendSnakbarMessage("Se han cargado correctamente los modelos");
-                    this.IsEnabledButton = false;
-                    this.IsModeloServiceRunning = true;
+                    NotifyResponseRequestModels("No hay modelos cargados en este host", true, false);
+                    return;
                 }
 
-            }catch (Exception ex)
-            {
-                ThingsUtils.SendSnakbarMessage("No se han encontrado modelos en el host indicado");
-                this.IsEnabledButton = true;
-                this.IsModeloServiceRunning = false;
+                models.ForEach(obj => this.Models.Add(obj.Id));
+                this.ModeloSeleccionado = this.Models[0];
+                NotifyResponseRequestModels("Se han cargado correctamente los modelos", false, true);
+
             }
-            this._lastUrlRequestModels = url;
+            catch (Exception ex)
+            {
+                NotifyResponseRequestModels("No se han encontrado modelos en el host indicado", true, false);
+            }
+        }
+        /// <summary>
+        /// Este método se encarga de enviar un snakbar 
+        /// con un mensaje indicando el estado del modelo posteriormente
+        /// habilito o desabilito el botón e indico que el modelo esta
+        /// corriendo de manera normal.
+        /// </summary>
+        /// <param name="mensajeSnakBar"></param>
+        /// <param name="isEnabledButton"></param>
+        /// <param name="isModeloServiceRunning"></param>
+        public void NotifyResponseRequestModels(string mensajeSnakBar, bool isEnabledButton, bool isModeloServiceRunning)
+        {
+            ThingsUtils.SendSnakbarMessage(mensajeSnakBar);
+            this.IsEnabledButton = isEnabledButton;
+            this.IsModeloServiceRunning = isModeloServiceRunning;
         }
 
         #region INotifyPropertyChanged
