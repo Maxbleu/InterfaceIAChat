@@ -55,7 +55,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             {
                 if (_exchangeName != value)
                 {
-                    _hostName = value;
+                    _exchangeName = value;
                     OnPropertyChanged();
                     this.IsEnabledButton = true;
                 }
