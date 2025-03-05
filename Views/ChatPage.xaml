@@ -6,10 +6,6 @@
              xmlns:mdl="clr-namespace:MauiApp_rabbit_mq_cliente_1.Models"
              xmlns:views="clr-namespace:MauiApp_rabbit_mq_cliente_1.Views">
 
-    <ContentPage.BindingContext>
-        <vm:ChatViewModel/>
-    </ContentPage.BindingContext>
-
     <Grid BackgroundColor="#F5F5F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
