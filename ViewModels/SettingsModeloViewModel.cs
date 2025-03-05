@@ -21,8 +21,16 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         private double _temperature = 0.9;
         private string _maxTokens = "8192";
         private string _modeloSeleccionado;
+
         private bool _isEnabledButton = false;
         private bool _isModeloServiceRunning = false;
+        private bool _hasBeenActivatedReloadModels = false;
+
+        private string _oldProtocolUserModels;
+        private string _oldHostNameUserModels;
+        private string _oldPortUserModels;
+        private string _oldModeloSeleccionado;
+        private ObservableCollection<string> _oldModels;
 
         //  BINDING ELEMENTS
         public ObservableCollection<string> Models { get; set; }
@@ -146,6 +154,18 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 }
             }
         }
+        public bool HasBeenActivatedReloadModels
+        {
+            get => _hasBeenActivatedReloadModels;
+            set
+            {
+                if (_hasBeenActivatedReloadModels != value)
+                {
+                    _hasBeenActivatedReloadModels = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         //  COMMANDS
         public ICommand ReloadModelsCommand { get; }
@@ -157,21 +177,21 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         }
 
         /// <summary>
-        /// Este método se encarga de realizar una recarga
-        /// de todos los modelos en la dirección url después
-        /// de borrar los espacios en blanco
+        /// Este método se encarga de indicar
+        /// que el boton ReloadModels ha
+        /// sido activado 
         /// </summary>
         /// <param name="obj"></param>
         private void ReloadModels(object obj)
         {
-            this.LoadModelsAsync();
+            this.HasBeenActivatedReloadModels = true;
         }
 
         /// <summary>
         /// Este método se encarga de cargar los modelos
-        /// que existen en la dirección ip que hemos indicado
+        /// que existen en la dirección ip que hemos indicado.
         /// </summary>
-        public async void LoadModelsAsync()
+        public async Task LoadModelsAsync()
         {
             this.Models.Clear();
             HttpClient client = null;
@@ -195,6 +215,8 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
 
                 models.ForEach(obj => this.Models.Add(obj.Id));
                 this.ModeloSeleccionado = this.Models[0];
+
+                this.LoadNewConfiguration();
                 NotifyResponseRequestModels("Se han cargado correctamente los modelos", false, true);
 
             }
@@ -217,6 +239,32 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             ThingsUtils.SendSnakbarMessage(mensajeSnakBar);
             this.IsEnabledButton = isEnabledButton;
             this.IsModeloServiceRunning = isModeloServiceRunning;
+        }
+        /// <summary>
+        /// Este método se encarga de cargar la nueva configuración
+        /// que ha registrado los nuevos modelos
+        /// </summary>
+        private void LoadNewConfiguration()
+        {
+            this._oldProtocolUserModels = this.ProtocolUserModels;
+            this._oldHostNameUserModels = this.HostNameUserModels;
+            this._oldPortUserModels = this.PortUserModels;
+            this._oldModeloSeleccionado = this.ModeloSeleccionado;
+            this._oldModels = this.Models;
+        }
+        /// <summary>
+        /// Este método se encarga de cargar la antigua configuración
+        /// que tenía el formulario de configuraciones de los
+        /// modelos
+        /// </summary>
+        public void LoadOldConfiguration()
+        {
+            this.ProtocolUserModels = this._oldProtocolUserModels;
+            this.HostNameUserModels = this._oldHostNameUserModels;
+            this.PortUserModels = this._oldPortUserModels;
+            this.ModeloSeleccionado = this._oldModeloSeleccionado;
+            this.Models = this._oldModels;
+            this.IsEnabledButton = false;
         }
 
         #region INotifyPropertyChanged

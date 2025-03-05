@@ -18,6 +18,7 @@
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0" 
@@ -26,6 +27,19 @@
                        VerticalOptions="Center" 
                        FontSize="18" 
                        FontAttributes="Bold"/>
+
+                <Button Grid.Column="1" HorizontalOptions="End" Command="{Binding ContinueStopConversationCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsActiveConversation}" Value="True">
+                            <Setter Property="ImageSource" Value="active_conversation.png" />
+                        </DataTrigger>
+
+                        <DataTrigger TargetType="Button" Binding="{Binding IsActiveConversation}" Value="False">
+                            <Setter Property="ImageSource" Value="stop_conversation.png" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+
             </Grid>
         </Border>
 
@@ -50,7 +64,6 @@
                                 <Label.Style>
                                     <Style TargetType="Label">
                                         <Setter Property="TextColor" Value="Black"/>
-                                        <!-- Puedes ajustar el color del texto también, si lo deseas -->
                                         <Style.Triggers>
                                             <DataTrigger TargetType="Label" Binding="{Binding IsCurrentUser}" Value="True">
                                                 <Setter Property="TextColor" Value="White"/>

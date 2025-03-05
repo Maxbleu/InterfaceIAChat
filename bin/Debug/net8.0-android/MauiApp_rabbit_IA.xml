@@ -30,11 +30,20 @@
             <param name="input"></param>
             <returns></returns>
         </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.SettingsModeloViewModel_PropertyChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
+            <summary>
+            Este método se encarga de responder ante la modificación de
+            valores de la propiedad HasBeenActivatedReloadModels
+            de la clase SettingsModeloViewModel
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.SettingsRabbitMQViewModel_PropertyChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
             <summary>
-            Este método se encarga de comprobar si la configuración
-            de rabbit habia sido guardada anteriormente si es
-            así se reconfiguraría el broker RabbitMQ
+            Este método se encarga de responder ante la modificación de valores
+            de las propiedades ExhangeName, Consumer y HasBeenActivatedSaveConfigurationButton
+            de la clase SettingsRabbitMQViewModel
             </summary>
             <param name="sender"></param>
             <param name="e"></param>
@@ -46,6 +55,13 @@
             </summary>
             <param name="sender"></param>
             <param name="e"></param>
+        </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.ContinueStopConversation">
+            <summary>
+            Este método se encarga de convertir el valor
+            de IsActiveConversation en el valor
+            contrario a este
+            </summary>
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.ChatViewModel.ShowMessage">
             <summary>
@@ -69,16 +85,16 @@
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.ReloadModels(System.Object)">
             <summary>
-            Este método se encarga de realizar una recarga
-            de todos los modelos en la dirección url después
-            de borrar los espacios en blanco
+            Este método se encarga de indicar
+            que el boton ReloadModels ha
+            sido activado 
             </summary>
             <param name="obj"></param>
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.LoadModelsAsync">
             <summary>
             Este método se encarga de cargar los modelos
-            que existen en la dirección ip que hemos indicado
+            que existen en la dirección ip que hemos indicado.
             </summary>
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.NotifyResponseRequestModels(System.String,System.Boolean,System.Boolean)">
@@ -92,10 +108,26 @@
             <param name="isEnabledButton"></param>
             <param name="isModeloServiceRunning"></param>
         </member>
-        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.SetupRabbitMQ">
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.LoadNewConfiguration">
+            <summary>
+            Este método se encarga de cargar la nueva configuración
+            que ha registrado los nuevos modelos
+            </summary>
+        </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsModeloViewModel.LoadOldConfiguration">
+            <summary>
+            Este método se encarga de cargar la antigua configuración
+            que tenía el formulario de configuraciones de los
+            modelos
+            </summary>
+        </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.SetupRabbitMQAsync">
             <summary>
             Este método se encarga de configurar el broker
-            RabbitMQ para que las IA puedan tener la conversion
+            RabbitMQ para que las IA puedan tener la conversion en caso
+            de que la dirección sea incorrecta en caso de sobrepasar
+            el timeout de 2 segundos saltará una excepción y
+            se mostrará un mensaje por pantalla
             </summary>
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.PostMessageInExchange(System.String)">
@@ -106,8 +138,15 @@
         </member>
         <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.SaveConfiguration">
             <summary>
-            Este método una vez que se han actualizado los valores de las propiedades
-            reconfiguro RabbitMQ en base a las configuraciones impuestas
+            Este método se encarga de indicar
+            que el boton guardar la configuración
+            de RabbitMQ ha sido activado
+            </summary>
+        </member>
+        <member name="M:MauiApp_rabbit_mq_cliente_1.ViewModels.SettingsRabbitMQViewModel.LoadOldConfiguration">
+            <summary>
+            Este método carga la antigua configuración
+            del formulario de RabbitMQ
             </summary>
         </member>
         <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Button.TextColorTo(Microsoft.Maui.Controls.Button,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">

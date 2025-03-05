@@ -13,16 +13,31 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         //  CAMPOS
         private IModel _channel;
         private string _queueName;
-
+        private string _oldHostName;
+        private string _oldExchangeName;
         private bool _isEnabledButton = false;
-        private string _hostName = "192.168.1.149";
         private EventingBasicConsumer _consumer;
+        private string _hostName = "192.168.1.149";
         private string _exchangeName = "grupoChat";
         private bool _isRabbitMQServiceRunning = false;
         private string _appId = Guid.NewGuid().ToString();
+        private bool _hasBeenActivatedSaveConfigurationButton = false;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         //  BINDING ELEMENTS
+        public string AppId
+        {
+            get => _appId;
+            set
+            {
+                if (_appId != value)
+                {
+                    _appId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         public IModel Channel
         {
             get => _channel;
@@ -94,14 +109,14 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 }
             }
         }
-        public string AppId
+        public bool HasBeenActivatedSaveConfigurationButton
         {
-            get => _appId;
+            get => _hasBeenActivatedSaveConfigurationButton;
             set
             {
-                if (_appId != value)
+                if (_hasBeenActivatedSaveConfigurationButton != value)
                 {
-                    _appId = value;
+                    _hasBeenActivatedSaveConfigurationButton = value;
                     OnPropertyChanged();
                 }
             }
@@ -117,35 +132,51 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
 
         /// <summary>
         /// Este método se encarga de configurar el broker
-        /// RabbitMQ para que las IA puedan tener la conversion
+        /// RabbitMQ para que las IA puedan tener la conversion en caso
+        /// de que la dirección sea incorrecta en caso de sobrepasar
+        /// el timeout de 2 segundos saltará una excepción y
+        /// se mostrará un mensaje por pantalla
         /// </summary>
-        public void SetupRabbitMQ()
+        public async Task SetupRabbitMQAsync()
         {
             this.IsRabbitMQServiceRunning = false;
             try
             {
                 var factory = new ConnectionFactory() { HostName = this.HostName };
-                var connection = factory.CreateConnection();
-                this.Channel = connection.CreateModel();
 
-                this.Channel.ExchangeDeclare(exchange: this.ExchangeName, type: "fanout");
+                var connectionTask = Task.Run(() => factory.CreateConnection());
 
-                this._queueName = this._channel.QueueDeclare().QueueName;
+                if (await Task.WhenAny(connectionTask, Task.Delay(TimeSpan.FromSeconds(2))) == connectionTask)
+                {
+                    var connection = await connectionTask;
+                    this.Channel = connection.CreateModel();
 
-                this.Channel.QueueBind(queue: this._queueName,
-                                  exchange: this.ExchangeName,
-                                  routingKey: "");
+                    this.Channel.ExchangeDeclare(exchange: this.ExchangeName, type: "fanout");
 
-                this.Consumer = new EventingBasicConsumer(this._channel);
+                    this._queueName = this.Channel.QueueDeclare().QueueName;
 
-                this.Channel.BasicConsume(queue: this._queueName,
-                                     autoAck: false,
-                                     consumer: this.Consumer);
+                    this.Channel.QueueBind(queue: this._queueName,
+                                      exchange: this.ExchangeName,
+                                      routingKey: "");
 
-                this.IsRabbitMQServiceRunning = true;
-                this.IsEnabledButton = false;
+                    this.Consumer = new EventingBasicConsumer(this.Channel);
 
-                ThingsUtils.SendSnakbarMessage("Se ha guardado correctamente la configuración RabbitMQ");
+                    this.Channel.BasicConsume(queue: this._queueName,
+                                         autoAck: false,
+                                         consumer: this.Consumer);
+
+                    this.IsRabbitMQServiceRunning = true;
+                    this.IsEnabledButton = false;
+
+                    this._oldExchangeName = this.ExchangeName;
+                    this._oldHostName = this.HostName;
+
+                    ThingsUtils.SendSnakbarMessage("Se ha guardado correctamente la configuración RabbitMQ");
+                }
+                else
+                {
+                    throw new TimeoutException("Timeout al conectar con RabbitMQ");
+                }
             }
             catch (Exception ex)
             {
@@ -171,12 +202,23 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             this._channel.BasicPublish(exchange: this.ExchangeName, routingKey: "", basicProperties: properties, body: body);
         }
         /// <summary>
-        /// Este método una vez que se han actualizado los valores de las propiedades
-        /// reconfiguro RabbitMQ en base a las configuraciones impuestas
+        /// Este método se encarga de indicar
+        /// que el boton guardar la configuración
+        /// de RabbitMQ ha sido activado
         /// </summary>
         private void SaveConfiguration()
         {
-            SetupRabbitMQ();
+            this.HasBeenActivatedSaveConfigurationButton = true;
+        }
+        /// <summary>
+        /// Este método carga la antigua configuración
+        /// del formulario de RabbitMQ
+        /// </summary>
+        public void LoadOldConfiguration()
+        {
+            this.ExchangeName = this._oldExchangeName;
+            this.HostName = this._oldHostName;
+            this.IsEnabledButton = false;
         }
 
         #region INotifyPropertyChanged

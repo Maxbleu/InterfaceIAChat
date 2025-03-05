@@ -17,6 +17,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         //  CAMPOS
         private string _nombreChat;
         private string _newMessageText;
+        private bool _isActiveConversation = true;
         public event PropertyChangedEventHandler PropertyChanged;
         private SettingsModeloViewModel _settingsModeloViewModel;
         private SettingsRabbitMQViewModel _settingsRabbitMQViewModel;
@@ -47,34 +48,74 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
                 }
             }
         }
+        public bool IsActiveConversation
+        {
+            get => _isActiveConversation;
+            set
+            {
+                if (_isActiveConversation != value)
+                {
+                    _isActiveConversation = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         // COMMANDS
         public ICommand SendMessageCommand { get; }
+        public ICommand ContinueStopConversationCommand { get; }
 
         public ChatViewModel()
         {
             this.Messages = new ObservableCollection<Message>();
+
             this.SendMessageCommand = new Command(SendMessage);
+            this.ContinueStopConversationCommand = new Command(ContinueStopConversation);
 
             this._settingsModeloViewModel = IPlatformApplication.Current.Services.GetService<SettingsModeloViewModel>();
+            this._settingsModeloViewModel.PropertyChanged += SettingsModeloViewModel_PropertyChanged;
             this._settingsModeloViewModel.LoadModelsAsync();
 
             this._settingsRabbitMQViewModel = IPlatformApplication.Current.Services.GetService<SettingsRabbitMQViewModel>();
             this.NombreChat = ThingsUtils.CapitalizeFirstLetter(this._settingsRabbitMQViewModel.ExchangeName);
             this._settingsRabbitMQViewModel.PropertyChanged += SettingsRabbitMQViewModel_PropertyChanged;
-            this._settingsRabbitMQViewModel.SetupRabbitMQ();
+            this._settingsRabbitMQViewModel.SetupRabbitMQAsync();
         }
+
 
 
         //  EVENTOS SUBCRIPTOS
         /// <summary>
-        /// Este método se encarga de comprobar si la configuración
-        /// de rabbit habia sido guardada anteriormente si es
-        /// así se reconfiguraría el broker RabbitMQ
+        /// Este método se encarga de responder ante la modificación de
+        /// valores de la propiedad HasBeenActivatedReloadModels
+        /// de la clase SettingsModeloViewModel
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SettingsRabbitMQViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private async void SettingsModeloViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "HasBeenActivatedReloadModels" && this._settingsModeloViewModel.HasBeenActivatedReloadModels)
+            {
+                if (!this.IsActiveConversation)
+                {
+                    await this._settingsModeloViewModel.LoadModelsAsync();
+                    this._settingsModeloViewModel.HasBeenActivatedReloadModels = false;
+                }
+                else
+                {
+                    ThingsUtils.SendSnakbarMessage("Desabilita la opción de continuar la conversión del modelo en la pantalla del chat arriba a la derecha");
+                    this._settingsModeloViewModel.LoadOldConfiguration();
+                }
+            }
+        }
+        /// <summary>
+        /// Este método se encarga de responder ante la modificación de valores
+        /// de las propiedades ExhangeName, Consumer y HasBeenActivatedSaveConfigurationButton
+        /// de la clase SettingsRabbitMQViewModel
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void SettingsRabbitMQViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if(e.PropertyName == "ExhangeName")
             {
@@ -85,6 +126,21 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             {
                 this._settingsRabbitMQViewModel.Consumer.Received += OnReceived;
             }
+
+            if(e.PropertyName == "HasBeenActivatedSaveConfigurationButton" && this._settingsRabbitMQViewModel.HasBeenActivatedSaveConfigurationButton)
+            {
+                if (!this.IsActiveConversation)
+                {
+                    this.Messages.Clear();
+                    await this._settingsRabbitMQViewModel.SetupRabbitMQAsync();
+                    this._settingsRabbitMQViewModel.HasBeenActivatedSaveConfigurationButton = false;
+                }
+                else
+                {
+                    ThingsUtils.SendSnakbarMessage("Desabilita la opción de continuar la conversión del modelo en la pantalla del chat arriba a la derecha");
+                    this._settingsRabbitMQViewModel.LoadOldConfiguration();
+                }
+            }
         }
         /// <summary>
         /// Este método se encarga de recibir todos los mensajes
@@ -94,27 +150,47 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
         /// <param name="e"></param>
         private void OnReceived(object sender, BasicDeliverEventArgs e)
         {
-            if (e.BasicProperties.AppId == this._settingsRabbitMQViewModel.AppId) return;
-            var body = e.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-
-            Messages.Add(new Message
+            if(this._settingsModeloViewModel.IsModeloServiceRunning)
             {
-                Id = DateTime.Now.Ticks.ToString(),
-                Text = message,
-                IsCurrentUser = false
-            });
+                if (this.IsActiveConversation)
+                {
+                    if (e.BasicProperties.AppId == this._settingsRabbitMQViewModel.AppId) return;
+                    var body = e.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
 
-            if (this._settingsRabbitMQViewModel.IsRabbitMQServiceRunning && this._settingsModeloViewModel.IsModeloServiceRunning)
-            {
-                this.NewMessageText = SendMessageToAIAsync(message).Result;
-                SendMessage();
+                    Messages.Add(new Message
+                    {
+                        Id = DateTime.Now.Ticks.ToString(),
+                        Text = message,
+                        IsCurrentUser = false
+                    });
+
+                    this.NewMessageText = SendMessageToAIAsync(message).Result;
+                    SendMessage();
+                    this._settingsRabbitMQViewModel.Channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
+                }
+                else
+                {
+                    ThingsUtils.SendSnakbarMessage("Pulsa en la opción de arriba a la derecha para habilitar la conversación con el modelo");
+                }
             }
-
-            this._settingsRabbitMQViewModel.Channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
+            else
+            {
+                ThingsUtils.SendSnakbarMessage("No hay un modelo disponible para poder gestionar la respuesta por favor, reconfigure los parametros de este");
+            }
         }
 
         //  MENSAJES
+        /// <summary>
+        /// Este método se encarga de convertir el valor
+        /// de IsActiveConversation en el valor
+        /// contrario a este
+        /// </summary>
+        private void ContinueStopConversation()
+        {
+            this.IsActiveConversation = !this.IsActiveConversation;
+            ThingsUtils.SendSnakbarMessage(this.IsActiveConversation ? "Habilitada que la ia usuario pueda responder a los mensajes" : "Deshabilitado que la ia usuario pueda responder a los mensajes" );
+        }
         /// <summary>
         /// Este método se encarga de mostrar los
         /// mensajes de la conversación
