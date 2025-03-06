@@ -167,7 +167,6 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
 
                     this.NewMessageText = SendMessageToAIAsync(message).Result;
                     SendMessage();
-                    this._settingsRabbitMQViewModel.Channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
                 }
                 else
                 {
@@ -178,6 +177,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
             {
                 ThingsUtils.SendSnakbarMessage("No hay un modelo disponible para poder gestionar la respuesta por favor, reconfigure los parametros de este");
             }
+            this._settingsRabbitMQViewModel.Channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
         }
 
         //  MENSAJES

@@ -146,7 +146,7 @@ namespace MauiApp_rabbit_mq_cliente_1.ViewModels
 
                 var connectionTask = Task.Run(() => factory.CreateConnection());
 
-                if (await Task.WhenAny(connectionTask, Task.Delay(TimeSpan.FromSeconds(2))) == connectionTask)
+                if (await Task.WhenAny(connectionTask, Task.Delay(TimeSpan.FromSeconds(3))) == connectionTask)
                 {
                     var connection = await connectionTask;
                     this.Channel = connection.CreateModel();
